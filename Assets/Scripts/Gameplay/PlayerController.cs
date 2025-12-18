@@ -28,7 +28,11 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            bombSystem.TryPlaceBombAtWorld(transform.position);
+            var col = GetComponent<Collider2D>();
+            if(col == null) col = GetComponentInChildren<Collider2D>();
+
+            bombSystem.TryPlaceBombAtWorld(transform.position, col);
+
         }
 
         if (isMoving) return;
@@ -65,11 +69,17 @@ public class PlayerController : MonoBehaviour
     {
         Vector2Int next = gridPos + dir;
 
+        // Duvar
         if (tilemapManager != null && tilemapManager.IsBlocked(next))
+            return;
+
+        // Bomba (bomba patlamadıysa o hücreye girme)
+        if (bombSystem != null && bombSystem.IsBombCell(next))
             return;
 
         gridPos = next;
         targetPos = tilemapManager.GridToWorldCenter(gridPos);
         isMoving = true;
     }
+
 }

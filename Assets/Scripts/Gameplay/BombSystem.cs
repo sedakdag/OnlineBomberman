@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,32 +12,32 @@ public class BombSystem : MonoBehaviour
 
     [Header("Bomb Params")]
     [SerializeField] private float fuseSeconds = 2f;
-    [SerializeField] private int explosionRange = 2; // kaç hücre gidecek
+    [SerializeField] private int explosionRange = 2;
 
-    // aynı hücreye 2 bomba koymayı engelle
     private readonly HashSet<Vector2Int> activeBombCells = new();
 
-    public bool TryPlaceBombAtWorld(Vector3 worldPos)
+    public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol)
     {
         Vector2Int cell = tilemapManager.WorldToGrid(worldPos);
 
-        // duvarın üstüne koyma
         if (tilemapManager.IsBlocked(cell)) return false;
-
-        // aynı hücreye tekrar koyma
         if (activeBombCells.Contains(cell)) return false;
 
         activeBombCells.Add(cell);
 
         Vector3 spawnPos = tilemapManager.GridToWorldCenter(cell);
-        GameObject bomb = Instantiate(explosionPrefab, spawnPos, Quaternion.identity, explosionParent);
+        var bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
 
+        // Pass-through (klasik bomberman)
+        var pass = bombObj.GetComponent<BombPassThrough>();
+        if (pass != null && playerCol != null)
+            pass.Init(playerCol);
 
-        StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bomb));
+        StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bombObj));
         return true;
     }
 
-    private System.Collections.IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj)
+    private IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj)
     {
         yield return new WaitForSeconds(delay);
 
@@ -49,13 +50,9 @@ public class BombSystem : MonoBehaviour
 
     private void SpawnExplosionPlus(Vector2Int center)
     {
-        // merkez
         SpawnExplosionCell(center);
 
-        // 4 yön
-        Vector2Int[] dirs = {
-            Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
-        };
+        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         foreach (var dir in dirs)
         {
@@ -64,7 +61,6 @@ public class BombSystem : MonoBehaviour
             {
                 cur += dir;
 
-                // duvar varsa patlama o yönde durur (şimdilik kırma yok)
                 if (tilemapManager.IsBlocked(cur))
                     break;
 
@@ -76,7 +72,16 @@ public class BombSystem : MonoBehaviour
     private void SpawnExplosionCell(Vector2Int cell)
     {
         Vector3 pos = tilemapManager.GridToWorldCenter(cell);
-        var go = Instantiate(explosionPrefab, pos, Quaternion.identity);
-        Destroy(go, 0.35f); // patlama kısa sürsün
+
+        var go = Instantiate(explosionPrefab, pos, Quaternion.identity,
+            explosionParent != null ? explosionParent : null);
+
+        Destroy(go, 0.35f);
     }
+    
+    public bool IsBombCell(Vector2Int cell)
+    {
+        return activeBombCells.Contains(cell);
+    }
+
 }
