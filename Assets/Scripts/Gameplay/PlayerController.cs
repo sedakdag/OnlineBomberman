@@ -11,9 +11,20 @@ public class PlayerController : MonoBehaviour
     private Vector2 targetPos;
     private bool isMoving;
 
+    private CommandInvoker _invoker;
+    private Collider2D _playerCol;
+    private bool _inputEnabled = true;
+    public void SetInputEnabled(bool enabled) => _inputEnabled = enabled;
+
+    
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        
+        _playerCol = GetComponent<Collider2D>();
+        if (_playerCol == null) _playerCol = GetComponentInChildren<Collider2D>();
+
+        _invoker = new CommandInvoker();
     }
 
     void Start()
@@ -26,13 +37,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (!_inputEnabled) return;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            var col = GetComponent<Collider2D>();
-            if(col == null) col = GetComponentInChildren<Collider2D>();
-
-            bombSystem.TryPlaceBombAtWorld(transform.position, col);
-
+            var cmd = new PlaceBombCommand(bombSystem, transform, _playerCol);
+            _invoker.Enqueue(cmd);
         }
 
         if (isMoving) return;
@@ -40,6 +50,8 @@ public class PlayerController : MonoBehaviour
         Vector2Int dir = ReadInput();
         if (dir != Vector2Int.zero)
             TryMove(dir);
+        
+        _invoker.ExecuteAll();
     }
 
     void FixedUpdate()

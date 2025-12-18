@@ -15,9 +15,20 @@ public class BombSystem : MonoBehaviour
     [SerializeField] private int explosionRange = 2;
 
     private readonly HashSet<Vector2Int> activeBombCells = new();
+    
+    private IExplosionPattern _pattern = new PlusExplosionPattern();
+    private IExplosionFactory _explosionFactory;
 
     public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol)
     {
+        _explosionFactory ??= new PooledExplosionFactory(
+            runner: this,
+            prefab: explosionPrefab,
+            parent: explosionParent,
+            lifeSeconds: 0.35f,
+            prewarm: 24
+        );
+
         Vector2Int cell = tilemapManager.WorldToGrid(worldPos);
 
         if (tilemapManager.IsBlocked(cell)) return false;
@@ -43,40 +54,23 @@ public class BombSystem : MonoBehaviour
 
         if (bombObj != null) Destroy(bombObj);
 
-        SpawnExplosionPlus(cell);
+        SpawnExplosion(cell);
 
         activeBombCells.Remove(cell);
     }
 
-    private void SpawnExplosionPlus(Vector2Int center)
+    private void SpawnExplosion(Vector2Int center)
     {
-        SpawnExplosionCell(center);
-
-        Vector2Int[] dirs = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
-        foreach (var dir in dirs)
-        {
-            Vector2Int cur = center;
-            for (int i = 0; i < explosionRange; i++)
-            {
-                cur += dir;
-
-                if (tilemapManager.IsBlocked(cur))
-                    break;
-
-                SpawnExplosionCell(cur);
-            }
-        }
+        foreach (var cell in _pattern.GetCells(center, explosionRange, tilemapManager.IsBlocked))
+            SpawnExplosionCell(cell);
     }
 
     private void SpawnExplosionCell(Vector2Int cell)
     {
+        GameEvents.RaiseExplosionAtCell(cell);
+
         Vector3 pos = tilemapManager.GridToWorldCenter(cell);
-
-        var go = Instantiate(explosionPrefab, pos, Quaternion.identity,
-            explosionParent != null ? explosionParent : null);
-
-        Destroy(go, 0.35f);
+        _explosionFactory.Spawn(pos, explosionParent);
     }
     
     public bool IsBombCell(Vector2Int cell)
