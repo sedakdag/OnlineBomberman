@@ -6,6 +6,7 @@ public class BombSystem : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private TilemapManager tilemapManager;
+    [SerializeField] private TilemapWallQuery wallQuery;
     [SerializeField] private GameObject bombPrefab;
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private Transform explosionParent;
@@ -18,7 +19,13 @@ public class BombSystem : MonoBehaviour
     
     private IExplosionPattern _pattern = new PlusExplosionPattern();
     private IExplosionFactory _explosionFactory;
+    private IWallQuery _walls;
 
+    private void Awake()
+    {
+        _walls = new TilemapWallQuery(tilemapManager);
+    }
+    
     public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol)
     {
         _explosionFactory ??= new PooledExplosionFactory(
@@ -59,14 +66,25 @@ public class BombSystem : MonoBehaviour
         activeBombCells.Remove(cell);
     }
 
-    private void SpawnExplosion(Vector2Int center)
+    private void SpawnExplosion(Vector2Int centerCell)
     {
-        foreach (var cell in _pattern.GetCells(center, explosionRange, tilemapManager.IsBlocked))
-            SpawnExplosionCell(cell);
+        foreach (var cur in _pattern.GetCells(centerCell, explosionRange, _walls))
+        {
+            if (tilemapManager.IsHardWall(cur))
+                break;
+
+            SpawnExplosionCell(cur);
+
+            if (tilemapManager.IsSoftWall(cur) || tilemapManager.IsReinforcedWall(cur))
+                break;
+
+        }
+
     }
 
     private void SpawnExplosionCell(Vector2Int cell)
     {
+        Debug.Log("EXP cell: " + cell);
         GameEvents.RaiseExplosionAtCell(cell);
 
         Vector3 pos = tilemapManager.GridToWorldCenter(cell);
