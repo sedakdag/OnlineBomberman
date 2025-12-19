@@ -1,18 +1,29 @@
+# --- UNITY GEREKSIZLERI (Bunlar gitmemeli) ---
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
-UserSettings/
-MemoryCaptures/
-.DS_Store
-Thumbs.db
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+
+# --- .NET SERVER GEREKSIZLERI ---
+bin/
+obj/
+Debug/
+Release/
+
+# --- IDE ve SISTEM DOSYALARI ---
 .vscode/
 .idea/
-*.csproj
-*.sln
-# .NET Core ignore rules
-[Bb]in/
-[Oo]bj/
-.vscode/
+.DS_Store
+Thumbs.db
+*.user
+*.userprefs
+*.pid
+*.suo
+*.tmp
+*.bak
+*.log
+
