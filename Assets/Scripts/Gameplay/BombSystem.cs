@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,78 +6,94 @@ public class BombSystem : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private TilemapManager tilemapManager;
+    [SerializeField] private TilemapWallQuery wallQuery;
     [SerializeField] private GameObject bombPrefab;
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private Transform explosionParent;
 
     [Header("Bomb Params")]
     [SerializeField] private float fuseSeconds = 2f;
-    [SerializeField] private int explosionRange = 2; // kaç hücre gidecek
+    [SerializeField] private int explosionRange = 2;
 
-    // aynı hücreye 2 bomba koymayı engelle
     private readonly HashSet<Vector2Int> activeBombCells = new();
+    
+    private IExplosionPattern _pattern = new PlusExplosionPattern();
+    private IExplosionFactory _explosionFactory;
+    private IWallQuery _walls;
 
-    public bool TryPlaceBombAtWorld(Vector3 worldPos)
+    private void Awake()
     {
+        _walls = new TilemapWallQuery(tilemapManager);
+    }
+    
+    public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol)
+    {
+        _explosionFactory ??= new PooledExplosionFactory(
+            runner: this,
+            prefab: explosionPrefab,
+            parent: explosionParent,
+            lifeSeconds: 0.35f,
+            prewarm: 24
+        );
+
         Vector2Int cell = tilemapManager.WorldToGrid(worldPos);
 
-        // duvarın üstüne koyma
         if (tilemapManager.IsBlocked(cell)) return false;
-
-        // aynı hücreye tekrar koyma
         if (activeBombCells.Contains(cell)) return false;
 
         activeBombCells.Add(cell);
 
         Vector3 spawnPos = tilemapManager.GridToWorldCenter(cell);
-        GameObject bomb = Instantiate(explosionPrefab, spawnPos, Quaternion.identity, explosionParent);
+        var bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
 
+        // Pass-through (klasik bomberman)
+        var pass = bombObj.GetComponent<BombPassThrough>();
+        if (pass != null && playerCol != null)
+            pass.Init(playerCol);
 
-        StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bomb));
+        StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bombObj));
         return true;
     }
 
-    private System.Collections.IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj)
+    private IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj)
     {
         yield return new WaitForSeconds(delay);
 
         if (bombObj != null) Destroy(bombObj);
 
-        SpawnExplosionPlus(cell);
+        SpawnExplosion(cell);
 
         activeBombCells.Remove(cell);
     }
 
-    private void SpawnExplosionPlus(Vector2Int center)
+    private void SpawnExplosion(Vector2Int centerCell)
     {
-        // merkez
-        SpawnExplosionCell(center);
-
-        // 4 yön
-        Vector2Int[] dirs = {
-            Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
-        };
-
-        foreach (var dir in dirs)
+        foreach (var cur in _pattern.GetCells(centerCell, explosionRange, _walls))
         {
-            Vector2Int cur = center;
-            for (int i = 0; i < explosionRange; i++)
-            {
-                cur += dir;
+            if (tilemapManager.IsHardWall(cur))
+                break;
 
-                // duvar varsa patlama o yönde durur (şimdilik kırma yok)
-                if (tilemapManager.IsBlocked(cur))
-                    break;
+            SpawnExplosionCell(cur);
 
-                SpawnExplosionCell(cur);
-            }
+            if (tilemapManager.IsSoftWall(cur) || tilemapManager.IsReinforcedWall(cur))
+                break;
+
         }
+
     }
 
     private void SpawnExplosionCell(Vector2Int cell)
     {
+        Debug.Log("EXP cell: " + cell);
+        GameEvents.RaiseExplosionAtCell(cell);
+
         Vector3 pos = tilemapManager.GridToWorldCenter(cell);
-        var go = Instantiate(explosionPrefab, pos, Quaternion.identity);
-        Destroy(go, 0.35f); // patlama kısa sürsün
+        _explosionFactory.Spawn(pos, explosionParent);
     }
+    
+    public bool IsBombCell(Vector2Int cell)
+    {
+        return activeBombCells.Contains(cell);
+    }
+
 }
