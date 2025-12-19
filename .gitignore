@@ -12,3 +12,7 @@ Thumbs.db
 .idea/
 *.csproj
 *.sln
+# .NET Core ignore rules
+[Bb]in/
+[Oo]bj/
+.vscode/
