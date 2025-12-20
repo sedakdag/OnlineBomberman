@@ -25,6 +25,9 @@ namespace BombermanServer
         public async Task JoinGame(string playerName)
         {
             Console.WriteLine($"[LOG] JoinGame İsteği: {playerName} ({Context.ConnectionId})");
+            
+            UserRepository repo = new UserRepository();
+            repo.AddPlayer(playerName);
 
             
             await Clients.Others.SendAsync(NetworkEvents.PlayerJoined, playerName);
