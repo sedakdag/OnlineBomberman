@@ -9,13 +9,22 @@ public class ReinforcedWallSystem : MonoBehaviour
 
     // damageTiles[0]=full, [1]=crack1, [2]=crack2 ...
     [SerializeField] private TileBase[] damageTiles;
+    [SerializeField] private PlayerPowerStats playerStats;
 
     private readonly Dictionary<Vector3Int, int> hp = new();
 
-    private void OnEnable()  => GameEvents.ExplosionAtCell += OnExplosionAtCell;
-    private void OnDisable() => GameEvents.ExplosionAtCell -= OnExplosionAtCell;
+    private void OnEnable()
+    {
+        GameEvents.ExplosionAtCellWithPower += OnExplosionAtCell;
+    }
 
-    private void OnExplosionAtCell(Vector2Int cell2)
+    private void OnDisable()
+    {
+        GameEvents.ExplosionAtCellWithPower -= OnExplosionAtCell;
+    }
+
+
+    private void OnExplosionAtCell(Vector2Int cell2, bool strongBomb)
     {
         if (reinforcedWallTilemap == null) return;
 
@@ -27,7 +36,10 @@ public class ReinforcedWallSystem : MonoBehaviour
         if (!hp.TryGetValue(cell, out int curHp))
             curHp = hitsToBreak;   // ilk kez vuruluyorsa full HP ile başla
 
-        curHp--; // hit geldi
+        if (strongBomb)
+            curHp = 0;
+        else
+            curHp--;
 
         // 0 ve altı => kırıldı, sil
         if (curHp <= 0)

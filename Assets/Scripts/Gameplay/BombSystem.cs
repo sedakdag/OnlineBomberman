@@ -19,14 +19,22 @@ public class BombSystem : MonoBehaviour
     private IExplosionPattern _pattern = new PlusExplosionPattern();
     private IExplosionFactory _explosionFactory;
     private IWallQuery _walls;
+    private PlayerPowerStats _ownerStats;
+    private int _activeBombs;
 
     private void Awake()
     {
         _walls = new TilemapWallQuery(tilemapManager);
     }
     
-    public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol)
+    public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol, PlayerPowerStats stats)
     {
+        _ownerStats = stats;
+        bool strongBomb = (_ownerStats != null && _ownerStats.reinforcedOneHit);
+
+        if (_activeBombs >= _ownerStats.bombCount)
+            return false;
+        
         _explosionFactory ??= new PooledExplosionFactory(
             runner: this,
             prefab: explosionPrefab,
@@ -41,6 +49,8 @@ public class BombSystem : MonoBehaviour
         if (activeBombCells.Contains(cell)) return false;
 
         activeBombCells.Add(cell);
+        
+        _activeBombs++;
 
         Vector3 spawnPos = tilemapManager.GridToWorldCenter(cell);
         var bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
@@ -50,37 +60,43 @@ public class BombSystem : MonoBehaviour
         if (pass != null && playerCol != null)
             pass.Init(playerCol);
 
-        StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bombObj));
+        StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bombObj, strongBomb));
         return true;
     }
 
-    private IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj)
+    private IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj, bool strongBomb)
     {
         yield return new WaitForSeconds(delay);
 
         if (bombObj != null) Destroy(bombObj);
 
-        SpawnExplosion(cell);
+        SpawnExplosion(cell, strongBomb);
 
         activeBombCells.Remove(cell);
+        
+        _activeBombs--;
     }
 
-    private void SpawnExplosion(Vector2Int centerCell)
+    private void SpawnExplosion(Vector2Int centerCell, bool strongBomb)
     {
         foreach (var cur in _pattern.GetCells(centerCell, explosionRange, _walls))
         {
-            SpawnExplosionCell(cur);
+            SpawnExplosionCell(cur, strongBomb);
         }
     }
 
-
-    private void SpawnExplosionCell(Vector2Int cell)
+    private void SpawnExplosionCell(Vector2Int cell, bool strongBomb)
     {
+        // eski event (soft wall vs.)
         GameEvents.RaiseExplosionAtCell(cell);
+
+        // 🔥 YENİ: bombanın gücüyle birlikte
+        GameEvents.RaiseExplosionAtCell(cell, strongBomb);
 
         Vector3 pos = tilemapManager.GridToWorldCenter(cell);
         _explosionFactory.Spawn(pos, explosionParent);
     }
+
     
     public bool IsBombCell(Vector2Int cell)
     {

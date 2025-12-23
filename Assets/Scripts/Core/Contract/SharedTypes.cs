@@ -1,5 +1,5 @@
 enum WallType { Unbreakable, Breakable, Hard }
 
-enum PowerUpType { BombCount, BombPower, Speed }
+public enum PowerUpType { BombCount, BombPower, SpeedBoost }
 
 struct GridPos { int x; int y; }

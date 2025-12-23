@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 5f;
+    private PlayerPowerStats _stats;
     [SerializeField] private TilemapManager tilemapManager;
     [SerializeField] private BombSystem bombSystem;
 
@@ -87,6 +87,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        _stats = GetComponent<PlayerPowerStats>();
 
         _playerCol = GetComponent<Collider2D>();
         if (_playerCol == null) _playerCol = GetComponentInChildren<Collider2D>();
@@ -94,7 +95,7 @@ public class PlayerController : MonoBehaviour
         _invoker = new CommandInvoker();
 
         if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-
+        
         // init direction states
         _up = new UpState();
         _down = new DownState();
@@ -120,7 +121,7 @@ public class PlayerController : MonoBehaviour
         // Command pattern for bomb placement
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            var cmd = new PlaceBombCommand(bombSystem, transform, _playerCol);
+            var cmd = new PlaceBombCommand(bombSystem, transform, _playerCol, _stats);
             _invoker.Enqueue(cmd);
         }
 
@@ -145,7 +146,14 @@ public class PlayerController : MonoBehaviour
     {
         if (!isMoving) return;
 
-        Vector2 newPos = Vector2.MoveTowards(rb.position, targetPos, moveSpeed * Time.fixedDeltaTime);
+        float speed = _stats != null ? _stats.speed : 5f;
+
+        Vector2 newPos = Vector2.MoveTowards(
+            rb.position,
+            targetPos,
+            speed * Time.fixedDeltaTime
+        );
+
         rb.MovePosition(newPos);
 
         if (Vector2.Distance(rb.position, targetPos) < 0.01f)
