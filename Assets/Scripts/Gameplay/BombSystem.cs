@@ -6,7 +6,6 @@ public class BombSystem : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private TilemapManager tilemapManager;
-    [SerializeField] private TilemapWallQuery wallQuery;
     [SerializeField] private GameObject bombPrefab;
     [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private Transform explosionParent;
@@ -70,21 +69,13 @@ public class BombSystem : MonoBehaviour
     {
         foreach (var cur in _pattern.GetCells(centerCell, explosionRange, _walls))
         {
-            if (tilemapManager.IsHardWall(cur))
-                break;
-
             SpawnExplosionCell(cur);
-
-            if (tilemapManager.IsSoftWall(cur) || tilemapManager.IsReinforcedWall(cur))
-                break;
-
         }
-
     }
+
 
     private void SpawnExplosionCell(Vector2Int cell)
     {
-        Debug.Log("EXP cell: " + cell);
         GameEvents.RaiseExplosionAtCell(cell);
 
         Vector3 pos = tilemapManager.GridToWorldCenter(cell);
