@@ -77,6 +77,7 @@
     <Compile Include="Assets/Scripts/Patterns/Factory/PrefabExplosionFactory.cs" />
     <Compile Include="Assets/Scripts/Patterns/Factory/PooledExplosionFactory.cs" />
     <Compile Include="Assets/Scripts/NetworkManager.cs" />
+    <Compile Include="Assets/Scripts/Patterns/State/PlayerDirectionState.cs" />
     <Compile Include="Assets/Scripts/Patterns/Command/CommandInvoker.cs" />
     <Compile Include="Assets/Scripts/Patterns/Strategy/TilemapWallQuery.cs" />
     <Compile Include="Assets/Scripts/Gameplay/PlayerHealth.cs" />

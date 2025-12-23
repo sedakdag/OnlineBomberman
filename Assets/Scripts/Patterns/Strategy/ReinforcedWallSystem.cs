@@ -7,7 +7,7 @@ public class ReinforcedWallSystem : MonoBehaviour
     [SerializeField] private Tilemap reinforcedWallTilemap;
     [SerializeField] private int hitsToBreak = 3;
 
-    // (opsiyonel) çatlak görselleri: index 0 = full, 1 = crack1, 2 = crack2 ...
+    // damageTiles[0]=full, [1]=crack1, [2]=crack2 ...
     [SerializeField] private TileBase[] damageTiles;
 
     private readonly Dictionary<Vector3Int, int> hp = new();
@@ -25,10 +25,11 @@ public class ReinforcedWallSystem : MonoBehaviour
             return;
 
         if (!hp.TryGetValue(cell, out int curHp))
-            curHp = hitsToBreak;
+            curHp = hitsToBreak;   // ilk kez vuruluyorsa full HP ile başla
 
-        curHp--;
+        curHp--; // hit geldi
 
+        // 0 ve altı => kırıldı, sil
         if (curHp <= 0)
         {
             reinforcedWallTilemap.SetTile(cell, null);
@@ -38,11 +39,14 @@ public class ReinforcedWallSystem : MonoBehaviour
 
         hp[cell] = curHp;
 
-        // opsiyonel: kalan hp’ye göre tile değiştir (çatlak)
+        // Görsel güncelleme: hitsToBreak=3 iken
+        // 1. hit sonrası curHp=2 => damageIndex=1 (crack1)
+        // 2. hit sonrası curHp=1 => damageIndex=2 (crack2)
+        int damageIndex = hitsToBreak - curHp;
+
         if (damageTiles != null && damageTiles.Length > 0)
         {
-            // Örn: hitsToBreak=3 => hp 2 kaldıysa idx=1, hp 1 kaldıysa idx=2
-            int damageIndex = Mathf.Clamp(hitsToBreak - curHp, 0, damageTiles.Length - 1);
+            damageIndex = Mathf.Clamp(damageIndex, 0, damageTiles.Length - 1);
             reinforcedWallTilemap.SetTile(cell, damageTiles[damageIndex]);
         }
     }
