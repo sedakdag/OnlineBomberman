@@ -12,8 +12,11 @@ public class BombPowerEffect : IPowerUpEffect
 {
     public void Apply(PlayerPowerStats stats)
     {
-        // 3 saniyelik reinforced tek-hit buff
-        stats.StartCoroutine(stats.ReinforcedOneHitBuff(3f));
+        // ✅ Süreli +1 Bomb Power (3 saniye sonra geri alır)
+        stats.TriggerBombPowerBuff(1, 3f);
+
+        // ✅ Reinforced One Hit buff (3 saniye, refresh eder)
+        stats.StartReinforcedOneHitBuff(3f);
     }
 }
 
@@ -28,8 +31,8 @@ public static class PowerUpEffectFactory
     {
         return type switch
         {
-            PowerUpType.BombCount => new BombCountEffect(),
-            PowerUpType.BombPower => new BombPowerEffect(),
+            PowerUpType.BombCount  => new BombCountEffect(),
+            PowerUpType.BombPower  => new BombPowerEffect(),
             PowerUpType.SpeedBoost => new SpeedBoostEffect(),
             _ => null
         };
