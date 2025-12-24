@@ -78,6 +78,7 @@
     <Compile Include="Assets/Scripts/Patterns/Factory/PooledExplosionFactory.cs" />
     <Compile Include="Assets/Scripts/NetworkManager.cs" />
     <Compile Include="Assets/Scripts/Patterns/State/PlayerDirectionState.cs" />
+    <Compile Include="Assets/Scripts/Gameplay/EnemyHealth.cs" />
     <Compile Include="Assets/Scripts/Gameplay/PlayerPowerStats.cs" />
     <Compile Include="Assets/Scripts/Patterns/Command/CommandInvoker.cs" />
     <Compile Include="Assets/Scripts/Patterns/Strategy/TilemapWallQuery.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Assets/Scripts/Patterns/Factory/PowerUpFactory.cs" />
     <Compile Include="Assets/Scripts/Gameplay/TilemapManager.cs" />
     <Compile Include="Assets/Scripts/Patterns/Command/ICommand.cs" />
+    <Compile Include="Assets/Scripts/Gameplay/EnemyKillOnDeath.cs" />
     <Compile Include="Assets/Scripts/Patterns/State/PlayerStateMachine.cs" />
     <Compile Include="Assets/Scripts/Gameplay/SimpleBFS.cs" />
     <Compile Include="Assets/Scripts/Patterns/Factory/IExplosionFactory.cs" />
