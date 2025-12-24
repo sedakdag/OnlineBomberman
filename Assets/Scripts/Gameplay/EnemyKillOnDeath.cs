@@ -3,25 +3,38 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class EnemyKillOnTouch : MonoBehaviour
 {
+    [SerializeField] private int touchDamage = 1;
+    [SerializeField] private float invincibilitySeconds = 0.5f;
+
     private void Reset()
     {
-        // Kolaylık: Enemy collider'ı trigger yap
         var c = GetComponent<Collider2D>();
         c.isTrigger = true;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Player’ı bul
-        var health = other.GetComponent<PlayerHealth>();
-        if (health == null) health = other.GetComponentInParent<PlayerHealth>();
-
+        var health = other.GetComponent<PlayerHealth>() ?? other.GetComponentInParent<PlayerHealth>();
         if (health == null) return;
 
-        // Zaten dead ise spam yapma (isteğe bağlı)
-        var sm = health.GetComponent<PlayerStateMachine>();
-        if (sm != null && sm.IsDead) return;
+        var iframe = health.GetComponent<PlayerIFrames>();
+        if (iframe == null) iframe = health.gameObject.AddComponent<PlayerIFrames>();
 
-        health.Die();
+        if (!iframe.CanTakeDamage()) return;
+
+        health.TakeDamage(touchDamage);
+        iframe.Trigger(invincibilitySeconds);
+    }
+}
+
+public class PlayerIFrames : MonoBehaviour
+{
+    private float _until;
+
+    public bool CanTakeDamage() => Time.time >= _until;
+
+    public void Trigger(float seconds)
+    {
+        _until = Time.time + seconds;
     }
 }
