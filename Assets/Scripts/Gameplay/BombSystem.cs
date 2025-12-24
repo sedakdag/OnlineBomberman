@@ -27,14 +27,19 @@ public class BombSystem : MonoBehaviour
         _walls = new TilemapWallQuery(tilemapManager);
     }
     
-    public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D playerCol, PlayerPowerStats stats)
+    public bool TryPlaceBombAtWorld(Vector3 worldPos, Collider2D ownerCol, PlayerPowerStats stats = null)
     {
         _ownerStats = stats;
+
+        // stats yoksa enemy gibi düşün: strongBomb=false, bombCount limiti kontrol etme
         bool strongBomb = (_ownerStats != null && _ownerStats.reinforcedOneHit);
 
-        if (_activeBombs >= _ownerStats.bombCount)
-            return false;
-        
+        if (_ownerStats != null)
+        {
+            if (_activeBombs >= _ownerStats.bombCount)
+                return false;
+        }
+
         _explosionFactory ??= new PooledExplosionFactory(
             runner: this,
             prefab: explosionPrefab,
@@ -49,20 +54,20 @@ public class BombSystem : MonoBehaviour
         if (activeBombCells.Contains(cell)) return false;
 
         activeBombCells.Add(cell);
-        
-        _activeBombs++;
+
+        if (_ownerStats != null) _activeBombs++;
 
         Vector3 spawnPos = tilemapManager.GridToWorldCenter(cell);
         var bombObj = Instantiate(bombPrefab, spawnPos, Quaternion.identity);
 
-        // Pass-through (klasik bomberman)
         var pass = bombObj.GetComponent<BombPassThrough>();
-        if (pass != null && playerCol != null)
-            pass.Init(playerCol);
+        if (pass != null && ownerCol != null)
+            pass.Init(ownerCol);
 
         StartCoroutine(ExplodeAfterDelay(cell, fuseSeconds, bombObj, strongBomb));
         return true;
     }
+
 
     private IEnumerator ExplodeAfterDelay(Vector2Int cell, float delay, GameObject bombObj, bool strongBomb)
     {
@@ -73,8 +78,8 @@ public class BombSystem : MonoBehaviour
         SpawnExplosion(cell, strongBomb);
 
         activeBombCells.Remove(cell);
-        
-        _activeBombs--;
+
+        if (_ownerStats != null) _activeBombs--;
     }
 
     private void SpawnExplosion(Vector2Int centerCell, bool strongBomb)
@@ -102,5 +107,18 @@ public class BombSystem : MonoBehaviour
     {
         return activeBombCells.Contains(cell);
     }
-
+    
+    public bool IsCellOccupiedByBomb(Vector2Int cell) => activeBombCells.Contains(cell);
+    public bool IsCellDangerous(Vector2Int cell)
+    {
+        // Her aktif bombanın patlama hücrelerini üretip bu cell var mı bak
+        foreach (var bombCell in activeBombCells)
+        {
+            foreach (var c in _pattern.GetCells(bombCell, explosionRange, _walls))
+            {
+                if (c == cell) return true;
+            }
+        }
+        return false;
+    }
 }
