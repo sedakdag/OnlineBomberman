@@ -7,6 +7,8 @@ public class PlayerStateMachine : MonoBehaviour
 
     private IPlayerState _state;
 
+    public bool IsDead => _state is PlayerDeadState;
+
     private void Awake()
     {
         Controller = GetComponent<PlayerController>();

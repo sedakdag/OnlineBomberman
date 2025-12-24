@@ -42,5 +42,9 @@ public class ExplosionDamage : MonoBehaviour
         {
             other.GetComponent<PlayerHealth>()?.Die();
         }
+        else if (other.CompareTag("Enemy"))
+        {
+            other.GetComponent<EnemyHealth>()?.Die();
+        }
     }
 }

@@ -18,9 +18,13 @@ public class SoftWallSystem : MonoBehaviour
     {
         if (tilemapManager == null) return;
 
-        if (tilemapManager.IsSoftWall(cell))
-        {
-            tilemapManager.ClearSoftWall(cell);
-        }
+        if (!tilemapManager.IsSoftWall(cell))
+            return;
+
+        // Duvarı sil
+        tilemapManager.ClearSoftWall(cell);
+
+        // 🔥 Event fırlat
+        GameEvents.RaiseSoftWallDestroyed(cell);
     }
 }
