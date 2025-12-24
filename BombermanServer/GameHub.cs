@@ -34,10 +34,22 @@ namespace BombermanServer
         }
 
         
-        public async Task MovePlayer(float x, float y)
+       // Unity'den gelen x, y ve yön bilgisini alır, diğer oyunculara dağıtır
+        public async Task MovePlayer(float x, float y, int direction)
         {
-            
-            Console.WriteLine($"[LOG] Hareket: {Context.ConnectionId} -> X:{x} Y:{y}");
+            Console.WriteLine($"[HAREKET] {Context.ConnectionId} -> X:{x} Y:{y}");
+            // 1. Veriyi paketle (Az önce oluşturduğumuz MoveState sınıfı)
+            var moveData = new MoveState
+            {
+                PlayerName = Context.ConnectionId, // Kim hareket etti? (Bağlantı ID'si)
+                X = x,
+                Y = y,
+                Direction = direction
+            };
+
+            // 2. Bu paketi, gönderen kişi HARİÇ diğer herkese (Others) yolla
+            // "PlayerMoved" etiketiyle gönderiyoruz, Unity tarafında bu etiketi dinleyeceğiz.
+            await Clients.Others.SendAsync("PlayerMoved", moveData);
         }
     }
 }
