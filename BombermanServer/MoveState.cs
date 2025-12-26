@@ -1,11 +1,13 @@
-namespace BombermanServer
+using System;
+
+[Serializable]
+public class MoveState
 {
-    // Bu sınıf, ağ üzerinden gidecek hareket verisidir.
-    public class MoveState
-    {
-        public string PlayerName { get; set; } = ""; // Hareketi kim yaptı?
-        public float X { get; set; }           // Nerede (X)?
-        public float Y { get; set; }           // Nerede (Y)?
-        public int Direction { get; set; }     // Hangi yöne bakıyor? (Animasyon için)
-    }
+    // DİKKAT: Sunucudan gelen JSON verisi "küçük harf" olduğu için
+    // burayı da küçük harf yapıyoruz. Yoksa veri 0 gelir!
+    
+    public string playerName { get; set; } // P -> p
+    public float x { get; set; }           // X -> x
+    public float y { get; set; }           // Y -> y
+    public int direction { get; set; }     // D -> d
 }

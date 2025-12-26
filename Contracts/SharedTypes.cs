@@ -1,6 +1,5 @@
 namespace Contracts
 {
-    
     public enum ThemeType 
     { 
         Desert, 
@@ -8,7 +7,6 @@ namespace Contracts
         City 
     }
 
-   
     public enum WallType 
     { 
         Unbreakable, 
@@ -16,7 +14,6 @@ namespace Contracts
         Hard 
     }
 
-    
     public enum PowerUpType 
     { 
         BombCount, 
@@ -24,41 +21,39 @@ namespace Contracts
         SpeedBoost 
     }
 
-    
     [System.Serializable]
-    public struct PlayerState
+    public class PlayerState
     {
-        public string PlayerId;
-        public float X;
-        public float Y;
-        public bool IsAlive;
-        public float Speed;
-        public int BombCount;
-        public int BombPower;
+        public string playerId   { get; set; }
+        public float  x          { get; set; }
+        public float  y          { get; set; }
+        public bool   alive      { get; set; }
+
+        public float  speed      { get; set; }
+        public int    bombCount  { get; set; }
+        public int    bombPower  { get; set; }
     }
 
-    
     [System.Serializable]
-    public struct BombData
+    public class BombData
     {
-        public string BombId;
-        public string OwnerId;
-        public float X;
-        public float Y;
-        public int Power;
-        public float FuseTimeMs; 
+        public string bombId    { get; set; }
+        public string ownerId   { get; set; }
+        public float  x         { get; set; }
+        public float  y         { get; set; }
+        public int    power     { get; set; }
+        public float  fuseTimeMs{ get; set; }
     }
 
-    
     public static class NetworkEvents
     {
-        public const string PlayerJoined = "PlayerJoined";
-        public const string PlayerMoved = "PlayerMoved";
-        public const string BombPlaced = "BombPlaced";
-        public const string BombExploded = "BombExploded";
-        public const string WallDestroyed = "WallDestroyed";
-        public const string PowerUpCollected = "PowerUpCollected";
-        public const string PlayerDied = "PlayerDied";
-        public const string MatchEnded = "MatchEnded";
+        public const string PlayerJoined      = "PlayerJoined";
+        public const string PlayerMoved       = "PlayerMoved";
+        public const string BombPlaced        = "BombPlaced";
+        public const string BombExploded      = "BombExploded";
+        public const string WallDestroyed     = "WallDestroyed";
+        public const string PowerUpCollected  = "PowerUpCollected";
+        public const string PlayerDied        = "PlayerDied";
+        public const string MatchEnded        = "MatchEnded";
     }
 }

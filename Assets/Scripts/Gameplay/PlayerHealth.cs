@@ -23,9 +23,6 @@ public class PlayerHealth : MonoBehaviour
         if (hud != null) hud.RefreshHearts();
     }
 
-    /// <summary>
-    /// Patlama, enemy temas vb. yerlerden çağır.
-    /// </summary>
     public void TakeDamage(int amount = 1)
     {
         if (CurrentHP <= 0) return;
@@ -51,11 +48,21 @@ public class PlayerHealth : MonoBehaviour
     {
         Debug.Log("PLAYER DIED");
 
-        // HUD panel göster (player objesini kapatmadan önce)
-        if (hud != null) hud.ShowGameOver();
+        // 🔹 KAYBETTİ: server’a defeat gönder
+        if (NetworkManager.Instance != null)
+        {
+            NetworkManager.Instance.SendGameResult(false); // lose
+        }
 
-        // State machine ile dead state
+        // 🔹 Game Over panelini aç
+        if (hud != null) 
+            hud.ShowGameOver();
+
+        // 🔹 State machine ile dead state
         if (_sm != null)
             _sm.ChangeState(new PlayerDeadState());
+
+        // 🔹 Oyunu durdur
+        Time.timeScale = 0f;
     }
 }

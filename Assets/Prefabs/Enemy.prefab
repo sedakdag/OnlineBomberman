@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 5383967717727042887}
   - component: {fileID: 1952813053051444839}
   - component: {fileID: 7255546785322633416}
-  - component: {fileID: 4893042169849527888}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -101,7 +100,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.53333336, y: 0.8}
+    oldSize: {x: 0.61538464, y: 0.9230769}
     newSize: {x: 0.53333336, y: 0.8}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -182,22 +181,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   tilemapManager: {fileID: 0}
   bombSystem: {fileID: 0}
-  targetPlayer: {fileID: 0}
+  player: {fileID: 0}
   moveSpeed: 4
   repathInterval: 0.25
---- !u!114 &4893042169849527888
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4537445203058557688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 77e9dc39b53d94d78b1fd4b47301a3a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemySpriteDirection
-  upSprite: {fileID: -709575133154121010, guid: 751f980ad26e74ff4953fd0ef8afef9c, type: 3}
-  downSprite: {fileID: 306372094466807954, guid: 751f980ad26e74ff4953fd0ef8afef9c, type: 3}
-  leftSprite: {fileID: 316992517, guid: 751f980ad26e74ff4953fd0ef8afef9c, type: 3}
-  rightSprite: {fileID: 400815137, guid: 751f980ad26e74ff4953fd0ef8afef9c, type: 3}
+  placeBombIfWithinCells: 1
+  bombCooldown: 1.2

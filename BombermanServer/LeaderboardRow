@@ -1,0 +1,15 @@
+namespace BombermanServer
+{
+    public class LeaderboardRow
+    {
+        public int Id { get; set; }
+
+        // Hangi user'a ait
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
+
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public int TotalGames { get; set; }
+    }
+}
