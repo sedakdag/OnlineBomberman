@@ -1,21 +1,19 @@
 // GameHub.cs
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Contracts;
+using Contracts;                    // MoveState, BombData, LeaderboardEntry
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace BombermanServer
 {
     public class GameHub : Hub
     {
-        private readonly AppDbContext _db;
+        private readonly IPlayerStatsRepository _statsRepo;
 
-        public GameHub(AppDbContext db)
+        public GameHub(IPlayerStatsRepository statsRepo)
         {
-            _db = db;
+            _statsRepo = statsRepo;
         }
 
         // ----------------- Bağlantılar -----------------
@@ -96,52 +94,16 @@ namespace BombermanServer
         {
             Console.WriteLine($"[GAME RESULT] user={playerName} win={didWin}");
 
-            // 1) Kullanıcıyı username ile bul, stats ile birlikte al
-            var user = await _db.Users
-                .Include(u => u.Stats)
-                .SingleOrDefaultAsync(u => u.Username == playerName);
-
-            // 2) Yoksa kullanıcı + stats oluştur
-            if (user == null)
+            try
             {
-                user = new User
-                {
-                    Username = playerName,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                user.Stats = new PlayerStats
-                {
-                    Wins = 0,
-                    Losses = 0,
-                    LastPlayedAt = DateTime.UtcNow
-                };
-
-                _db.Users.Add(user);
+                await _statsRepo.SubmitGameResultAsync(playerName, didWin);
             }
-            else if (user.Stats == null)
+            catch (Exception ex)
             {
-                // Kullanıcı var ama istatistik kaydı yoksa
-                user.Stats = new PlayerStats
-                {
-                    Wins = 0,
-                    Losses = 0,
-                    LastPlayedAt = DateTime.UtcNow
-                };
+                Console.WriteLine("[HUB] SubmitGameResult ERROR: " + ex);
+                // HubException client’a gitsin diye tekrar fırlatıyoruz
+                throw;
             }
-
-            var stats = user.Stats!;
-
-            // 3) Win/Loss güncelle
-            if (didWin)
-                stats.Wins += 1;
-            else
-                stats.Losses += 1;
-
-            stats.LastPlayedAt = DateTime.UtcNow;
-
-            // 4) DB'ye yaz
-            await _db.SaveChangesAsync();
         }
 
         // Unity: await connection.InvokeAsync("GetLeaderboard", 5);
@@ -149,35 +111,15 @@ namespace BombermanServer
         {
             try
             {
-                // PlayerStats tablosundan, User ile birlikte en çok kazananları çek
-                var topPlayers = await _db.PlayerStats
-                    .Include(ps => ps.User)
-                    .OrderByDescending(ps => ps.Wins)
-                    .ThenBy(ps => ps.Losses)
-                    .Take(top)
-                    .ToListAsync();
-
-                var result = topPlayers
-                    .Select(ps => new LeaderboardEntry
-                    {
-                        username = ps.User?.Username ?? "(unknown)",
-                        wins = ps.Wins,
-                        losses = ps.Losses,
-                        totalGames = ps.Wins + ps.Losses
-                    })
-                    .ToList();
-
+                var result = await _statsRepo.GetLeaderboardAsync(top);
                 Console.WriteLine($"[HUB] GetLeaderboard OK. count={result.Count}");
                 return result;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("[HUB] GetLeaderboard ERROR: " + ex);
-                // Unity tarafı hata logluyor zaten; burada boş liste döneriz
                 return new List<LeaderboardEntry>();
             }
         }
     }
-
-   
 }

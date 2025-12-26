@@ -5,14 +5,13 @@ using Contracts; // MoveState, BombData
 
 public class PlayerMovement : MonoBehaviour
 {
-    private HubConnection connection;
     private TilemapManager tilemapManager;
 
     private Vector3 targetPos;
     private bool isMoving;
     public float speed = 5f;
 
-    // Player adı (Inspector'dan verebilirsin)
+    // Player adı (Her window’da farklı vermelisin: Unity_Test_Oyuncusu, Unity_Test_Oyuncusu_2 vs.)
     [SerializeField] private string playerName = "Unity_Test_Oyuncusu";
 
     private void Start()
@@ -29,16 +28,6 @@ public class PlayerMovement : MonoBehaviour
         Vector2Int startGridPos = tilemapManager.WorldToGrid(transform.position);
         transform.position = tilemapManager.GridToWorldCenter(startGridPos);
         targetPos = transform.position;
-
-        var manager = FindFirstObjectByType<NetworkManager>();
-        if (manager != null)
-        {
-            connection = manager.GetConnection();
-        }
-        else
-        {
-            Debug.LogWarning("[CLIENT] NetworkManager bulunamadı, bağlantı alınamadı.");
-        }
     }
 
     private void Update()
@@ -87,6 +76,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void TryMove(Vector2Int dir)
     {
+        if (tilemapManager == null)
+            return;
+
         Vector2Int currentGridPos = tilemapManager.WorldToGrid(transform.position);
         Vector2Int nextGridPos = currentGridPos + dir;
 
@@ -114,21 +106,37 @@ public class PlayerMovement : MonoBehaviour
 
     private async void SendMovement(Vector3 worldPos, Vector2Int dir)
     {
-        if (connection == null || connection.State != HubConnectionState.Connected)
+        var nm = NetworkManager.Instance;
+        if (nm == null)
+        {
+            Debug.LogWarning("[CLIENT] SendMovement: NetworkManager.Instance yok.");
             return;
+        }
+
+        HubConnection conn = nm.GetConnection();
+        if (conn == null)
+        {
+            Debug.LogWarning("[CLIENT] SendMovement: HubConnection NULL.");
+            return;
+        }
+
+        if (conn.State != HubConnectionState.Connected)
+        {
+            Debug.LogWarning("[CLIENT] SendMovement: connection state=" + conn.State);
+            return;
+        }
 
         var moveState = new MoveState
         {
             playerName = playerName,
             x = worldPos.x,
             y = worldPos.y,
-            direction = DirToInt(dir)   // <-- BURASI ARTIK int
+            direction = DirToInt(dir)
         };
 
         try
         {
-            // GameHub.SendMove(MoveState state)
-            await connection.InvokeAsync("SendMove", moveState);
+            await conn.InvokeAsync("SendMove", moveState);
             // Debug.Log($"[CLIENT] SendMove yollandı: {moveState.playerName} -> ({moveState.x},{moveState.y}) dir={moveState.direction}");
         }
         catch (Exception ex)
@@ -151,11 +159,21 @@ public class PlayerMovement : MonoBehaviour
 
     private async void SendBombToServer(Vector2Int gridPos)
     {
-        if (connection == null || connection.State != HubConnectionState.Connected)
+        var nm = NetworkManager.Instance;
+        if (nm == null)
         {
-            Debug.LogWarning("[CLIENT] SendBombToServer: bağlantı yok.");
+            Debug.LogWarning("[CLIENT] SendBombToServer: NetworkManager.Instance yok.");
             return;
         }
+
+        HubConnection conn = nm.GetConnection();
+        if (conn == null)
+        {
+            Debug.LogWarning("[CLIENT] SendBombToServer: HubConnection NULL.");
+            return;
+        }
+
+        Debug.Log("[CLIENT] SendBombToServer: conn.State=" + conn.State);
 
         // Bomb world position (grid merkezine)
         Vector3 bombWorldPos = tilemapManager.GridToWorldCenter(gridPos);
@@ -173,8 +191,7 @@ public class PlayerMovement : MonoBehaviour
 
         try
         {
-            // GameHub.PlaceBomb(BombData data)
-            await connection.InvokeAsync("PlaceBomb", bomb);
+            await conn.InvokeAsync("PlaceBomb", bomb);
             Debug.Log($"[CLIENT] PlaceBomb server'a gönderildi: id={bomb.bombId}, owner={bomb.ownerId}, pos=({bomb.x},{bomb.y}), power={bomb.power}");
         }
         catch (Exception ex)

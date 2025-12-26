@@ -9,12 +9,9 @@ namespace BombermanServer
         {
         }
 
-        // === TABLOLAR ===
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<PlayerStats> PlayerStats { get; set; } = null!;
         public DbSet<UserPreference> UserPreferences { get; set; } = null!;
-        // ⚠️ LeaderboardRow artık yok — DbSet tanımı da yok.
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,11 +36,9 @@ namespace BombermanServer
                 entity.ToTable("PlayerStats");
                 entity.HasKey(p => p.Id);
 
-                entity.Property(p => p.Wins)
-                      .HasDefaultValue(0);
-
-                entity.Property(p => p.Losses)
-                      .HasDefaultValue(0);
+                // ⚠️ DefaultValue YOK — değerleri entity içinde veriyoruz
+                entity.Property(p => p.Wins).IsRequired();
+                entity.Property(p => p.Losses).IsRequired();
 
                 entity.Property(p => p.LastPlayedAt);
 
@@ -52,15 +47,11 @@ namespace BombermanServer
                       .HasForeignKey<PlayerStats>(p => p.UserId);
             });
 
-            // ---- UserPreference (tema vs.) ----
+            // ---- UserPreference ----
             modelBuilder.Entity<UserPreference>(entity =>
             {
                 entity.ToTable("UserPreferences");
                 entity.HasKey(p => p.Id);
-
-                // Theme enum — EF bunu otomatik olarak int olarak mapler
-                // İstersen açık conversion eklenebilir:
-                // entity.Property(p => p.Theme).HasConversion<int>();
 
                 entity.HasOne(p => p.User)
                       .WithOne(u => u.Preferences)

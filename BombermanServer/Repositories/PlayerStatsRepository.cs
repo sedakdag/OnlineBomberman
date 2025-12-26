@@ -3,14 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Contracts;                  // LeaderboardEntry burada
+using Contracts;                  // LeaderboardEntry
 using Microsoft.EntityFrameworkCore;
 
 namespace BombermanServer
 {
     /// <summary>
     /// Oyuncu istatistiklerini (Wins/Losses/LastPlayedAt) yöneten repository.
-    /// Ayrı Leaderboard tablosu YOK; PlayerStats + Users üzerinden hesaplıyoruz.
+    /// Ayrı Leaderboard tablosu yok; PlayerStats + Users üzerinden hesaplıyoruz.
     /// </summary>
     public class PlayerStatsRepository : IPlayerStatsRepository
     {
@@ -22,7 +22,7 @@ namespace BombermanServer
         }
 
         /// <summary>
-        /// İç helper: Kullanıcıyı ve stats kaydını getirir; yoksa oluşturur.
+        /// Kullanıcı + stats kaydını getirir, yoksa oluşturur.
         /// </summary>
         private async Task<PlayerStats> GetOrCreateStatsInternalAsync(string username)
         {
@@ -77,10 +77,6 @@ namespace BombermanServer
 
         // === IPlayerStatsRepository IMPLEMENTATION ===
 
-        /// <summary>
-        /// Interface’in istediği imza:
-        /// SubmitGameResultAsync(string playerName, bool didWin)
-        /// </summary>
         public async Task SubmitGameResultAsync(string username, bool didWin)
         {
             var stats = await GetOrCreateStatsInternalAsync(username);
@@ -95,10 +91,6 @@ namespace BombermanServer
             await _db.SaveChangesAsync();
         }
 
-        /// <summary>
-        /// Interface’in istediği imza:
-        /// GetLeaderboardAsync(int topN)
-        /// </summary>
         public async Task<List<LeaderboardEntry>> GetLeaderboardAsync(int topN)
         {
             var query = _db.PlayerStats

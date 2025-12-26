@@ -5,19 +5,18 @@ namespace BombermanServer
 {
     public class PlayerStats
     {
-        public int Id { get; set; }  // PK
+        public int Id { get; set; }
 
-        // FK → User
         public int UserId { get; set; }
         public User User { get; set; } = null!;
 
-        public int Wins { get; set; }
-        public int Losses { get; set; }
+        // ⭐ Varsayılan değerler burada veriliyor
+        public int Wins { get; set; } = 0;
+        public int Losses { get; set; } = 0;
 
-        // TotalGames = Wins + Losses (DB'de kolon yok, sadece hesaplanan property)
         [NotMapped]
         public int TotalGames => Wins + Losses;
 
-        public DateTime LastPlayedAt { get; set; }
+        public DateTime LastPlayedAt { get; set; } = DateTime.UtcNow;
     }
 }
