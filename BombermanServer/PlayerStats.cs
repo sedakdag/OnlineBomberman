@@ -10,7 +10,7 @@ namespace BombermanServer
         public int UserId { get; set; }
         public User User { get; set; } = null!;
 
-        // ⭐ Varsayılan değerler burada veriliyor
+        
         public int Wins { get; set; } = 0;
         public int Losses { get; set; } = 0;
 

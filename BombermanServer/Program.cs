@@ -1,17 +1,17 @@
 // Program.cs
 using BombermanServer;
 using Microsoft.EntityFrameworkCore;
-
+//HER YER BUILDER
 var builder = WebApplication.CreateBuilder(args);
 
 // SignalR
 builder.Services.AddSignalR();
 
-// EF Core context
+// ef core 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=bomberman.db"));
 
-// 🔹 Repository Pattern: PlayerStats repository kaydı
+// Repository Pattern-- interface i ana classa bağlama
 builder.Services.AddScoped<IPlayerStatsRepository, PlayerStatsRepository>();
 builder.Services.AddScoped<IUserPreferencesRepository, UserPreferencesRepository>();
 var app = builder.Build();

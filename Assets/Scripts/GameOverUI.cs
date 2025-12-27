@@ -21,10 +21,7 @@ public class GameOverUI : MonoBehaviour
         panelRoot.SetActive(false);
     }
 
-    /// <summary>
-    /// Oyun sonucu ekranını açar ve leaderboard'u yazar.
-    /// NetworkManager burayı çağırıyor.
-    /// </summary>
+    
     public void Show(bool didWin, List<LeaderboardEntry> leaderboard)
     {
         // Oyunu durdur
@@ -32,7 +29,7 @@ public class GameOverUI : MonoBehaviour
 
         panelRoot.SetActive(true);
 
-        // Sonuç
+        
         if (resultText != null)
             resultText.text = didWin ? "YOU WIN!" : "YOU LOSE!";
 
@@ -59,18 +56,17 @@ public class GameOverUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Panel gizle
-    /// </summary>
+    
+    
     public void Hide()
     {
         panelRoot.SetActive(false);
         Time.timeScale = 1f;
     }
 
-    /// <summary>
+   
     /// Restart Button
-    /// </summary>
+    
     public void OnRestartButton()
     {
         Time.timeScale = 1f;
@@ -78,9 +74,9 @@ public class GameOverUI : MonoBehaviour
         SceneManager.LoadScene(scene.buildIndex);
     }
 
-    /// <summary>
+   
     /// Quit Button
-    /// </summary>
+   
     public void OnQuitButton()
     {
         Time.timeScale = 1f;

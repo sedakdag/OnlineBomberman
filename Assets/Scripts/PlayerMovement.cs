@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using Microsoft.AspNetCore.SignalR.Client;
-using Contracts; // MoveState, BombData
+using Contracts;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isMoving;
     public float speed = 5f;
 
-    // Player adı (Her window’da farklı vermelisin: Unity_Test_Oyuncusu, Unity_Test_Oyuncusu_2 vs.)
+   
     [SerializeField] private string playerName = "Unity_Test_Oyuncusu";
 
     private void Start()
@@ -24,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // Başlangıç pozisyonunu grid merkezine oturt
+        // Başlangıç pozisyonu
         Vector2Int startGridPos = tilemapManager.WorldToGrid(transform.position);
         transform.position = tilemapManager.GridToWorldCenter(startGridPos);
         targetPos = transform.position;
@@ -32,7 +32,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        // Halihazırda hareket halindeysek interpolation devam etsin
+        
         if (isMoving)
         {
             transform.position = Vector3.MoveTowards(
@@ -49,7 +49,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // Input oku
+        // input 
         Vector2Int dir = Vector2Int.zero;
 
         if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
@@ -66,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
             TryMove(dir);
         }
 
-        // --- BOMBA ---
+        
         if (Input.GetKeyDown(KeyCode.Space))
         {
             Debug.Log("[CLIENT] SPACE basıldı, PlaceBomb() çağrılacak.");
@@ -85,11 +85,11 @@ public class PlayerMovement : MonoBehaviour
         if (tilemapManager.IsBlocked(nextGridPos))
             return;
 
-        // Yeni hedef dünya pozisyonu
+        
         targetPos = tilemapManager.GridToWorldCenter(nextGridPos);
         isMoving = true;
 
-        // Server’a hareket event’i yolla
+        
         SendMovement(targetPos, dir);
     }
 
@@ -133,11 +133,11 @@ public class PlayerMovement : MonoBehaviour
             y = worldPos.y,
             direction = DirToInt(dir)
         };
-
+        //command - behavioral
         try
         {
             await conn.InvokeAsync("SendMove", moveState);
-            // Debug.Log($"[CLIENT] SendMove yollandı: {moveState.playerName} -> ({moveState.x},{moveState.y}) dir={moveState.direction}");
+            
         }
         catch (Exception ex)
         {
@@ -175,7 +175,7 @@ public class PlayerMovement : MonoBehaviour
 
         Debug.Log("[CLIENT] SendBombToServer: conn.State=" + conn.State);
 
-        // Bomb world position (grid merkezine)
+        
         Vector3 bombWorldPos = tilemapManager.GridToWorldCenter(gridPos);
         int power = 1;
 
@@ -186,7 +186,7 @@ public class PlayerMovement : MonoBehaviour
             x = bombWorldPos.x,
             y = bombWorldPos.y,
             power = power,
-            fuseTimeMs = 0f // şimdilik kullanmıyorsan 0
+            fuseTimeMs = 0f 
         };
 
         try

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using Contracts;   // BombData, MoveState, NetworkEvents
+using Contracts;   
 
 public class NetworkManager : MonoBehaviour
 {
@@ -26,9 +26,9 @@ public class NetworkManager : MonoBehaviour
     public HubConnection connection;
 
     [Header("Remote Prefabs")]
-    public GameObject remotePlayerPrefab;      // Kırmızı kare
-    public GameObject remoteBombPrefab;        // Remote bomba
-    public GameObject remoteExplosionPrefab;   // Remote patlama efekti
+    public GameObject remotePlayerPrefab;      
+    public GameObject remoteBombPrefab;        
+    public GameObject remoteExplosionPrefab;   
 
     [SerializeField] private HUDController hud;
 
@@ -38,15 +38,15 @@ public class NetworkManager : MonoBehaviour
     [Header("Player")]
     [SerializeField] private string playerName = "Unity_Test_Oyuncusu";
 
-    // Diğer oyuncular
+    
     private readonly Dictionary<string, GameObject> otherPlayers =
         new Dictionary<string, GameObject>();
 
-    // Remote bombalar (bombId -> GameObject)
+    
     private readonly Dictionary<string, GameObject> remoteBombs =
         new Dictionary<string, GameObject>();
 
-    // --- BAĞLANTI KURULUYOR ---
+    //connection - builder pattern??
     private async void Start()
     {
         connection = new HubConnectionBuilder()
@@ -54,9 +54,9 @@ public class NetworkManager : MonoBehaviour
             .WithAutomaticReconnect()
             .Build();
 
-        // === Event handler'lar ===
-
-        // 1) Hareket dinleme
+        
+        // on call- observer-behavioral
+       
         connection.On<MoveState>(NetworkEvents.PlayerMoved, (data) =>
         {
             Debug.Log($"[CLIENT] PlayerMoved event geldi: {data.playerName} -> ({data.x}, {data.y})");
@@ -66,7 +66,7 @@ public class NetworkManager : MonoBehaviour
             });
         });
 
-        // 2) BombPlaced dinleme
+        
         connection.On<BombData>(NetworkEvents.BombPlaced, (bomb) =>
         {
             Debug.Log($"[CLIENT] BombPlaced event geldi: {bomb.ownerId} -> ({bomb.x}, {bomb.y}) power={bomb.power}");
@@ -76,7 +76,7 @@ public class NetworkManager : MonoBehaviour
             });
         });
 
-        // 3) BombExploded dinleme
+        
         connection.On<BombData>(NetworkEvents.BombExploded, (bomb) =>
         {
             Debug.Log($"[CLIENT] BombExploded event geldi: ({bomb.x}, {bomb.y}) power={bomb.power}");
@@ -86,7 +86,7 @@ public class NetworkManager : MonoBehaviour
             });
         });
 
-        // 4) PlayerDied dinleme
+        
         connection.On<string>(NetworkEvents.PlayerDied, (deadId) =>
         {
             MainThreadDispatcher.Enqueue(() =>
@@ -96,7 +96,7 @@ public class NetworkManager : MonoBehaviour
             });
         });
 
-        // --- Otomatik reconnect logları ---
+        //  reconnect logs
         connection.Reconnecting += error =>
         {
             Debug.LogWarning($"[NetworkManager] Reconnecting... error={error?.Message}");
@@ -141,10 +141,10 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    // --- REMOTE PLAYER HAREKETİ ---
+    //REMOTE PLAYER 
     private void OnRemotePlayerMoved(MoveState data)
     {
-        // Kendi hareketimizi tekrar çizme
+        
         if (data.playerName == playerName)
             return;
 
@@ -171,7 +171,7 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    // --- REMOTE BOMB SPAWN ---
+    // REMOTE BOMB SPAWN 
     private void OnRemoteBombPlaced(BombData bomb)
     {
         if (remoteBombPrefab == null)
@@ -195,10 +195,10 @@ public class NetworkManager : MonoBehaviour
         Debug.Log("[CLIENT] Remote bomba spawn edildi.");
     }
 
-    // --- REMOTE PATLAMA ---
+    //  REMOTE PATLAMA
     private void OnRemoteBombExploded(BombData bomb)
     {
-        // 1) Bomba objesini sahneden kaldır (varsa)
+        
         if (!string.IsNullOrEmpty(bomb.bombId) &&
             remoteBombs.TryGetValue(bomb.bombId, out var bombGO))
         {
@@ -206,7 +206,7 @@ public class NetworkManager : MonoBehaviour
             remoteBombs.Remove(bomb.bombId);
         }
 
-        // 2) Patlama efekti spawn et
+        
         if (remoteExplosionPrefab != null)
         {
             Vector3 pos = new Vector3(bomb.x, bomb.y, 0);
@@ -217,10 +217,10 @@ public class NetworkManager : MonoBehaviour
         Debug.Log("[CLIENT] Remote patlama efekti oynatıldı.");
     }
 
-    // --- PLAYER ÖLÜMÜ ---
+    // PLAYER Death
     private void OnPlayerDied(string deadId)
     {
-        // Remote player öldüyse: kırmızı kareyi yok et
+        
         if (otherPlayers.TryGetValue(deadId, out var enemy))
         {
             if (enemy != null) Destroy(enemy);
@@ -228,19 +228,19 @@ public class NetworkManager : MonoBehaviour
             Debug.Log("[CLIENT] Remote player öldü, GameObject yok edildi.");
         }
 
-        // Bu client öldüyse
+        
         if (connection != null && deadId == connection.ConnectionId)
         {
             Debug.Log("[CLIENT] BU PLAYER ÖLDÜ (buraya GameOver / respawn bağlanabilir).");
         }
     }
 
-    // --- GAME RESULT (WIN/LOSE) + LEADERBOARD ---
+    // GAME RESULT VELEADERBOARD 
     public async void SendGameResult(bool didWin)
     {
         Debug.Log($"[NetworkManager] SendGameResult called. didWin={didWin}");
 
-        // Bağlantı yoksa: sadece lokal paneli göster
+        
         if (connection == null || connection.State != HubConnectionState.Connected)
         {
             Debug.LogWarning("[NetworkManager] SendGameResult skipped: not connected to server.");
@@ -253,11 +253,11 @@ public class NetworkManager : MonoBehaviour
 
         try
         {
-            // 1) Sonucu sunucuya gönder
+            
             await connection.InvokeAsync("SubmitGameResult", playerName, didWin);
             Debug.Log("[NetworkManager] GameResult sent to server.");
 
-            // 2) Leaderboard iste
+            
             List<LeaderboardEntry> leaderboard;
             try
             {
@@ -271,7 +271,7 @@ public class NetworkManager : MonoBehaviour
                 leaderboard = new List<LeaderboardEntry>();
             }
 
-            // 3) UI’yi aç
+            
             if (gameOverUI != null)
             {
                 gameOverUI.Show(didWin, leaderboard);
@@ -292,7 +292,8 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    // PlayerMovement için bağlantıyı expose ediyoruz
+    
+    
     public HubConnection GetConnection()
     {
         return connection;

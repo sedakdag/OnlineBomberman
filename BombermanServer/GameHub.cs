@@ -1,8 +1,8 @@
-// GameHub.cs
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Contracts;                    // MoveState, BombData, LeaderboardEntry
+using Contracts;                   
 using Microsoft.AspNetCore.SignalR;
 
 namespace BombermanServer
@@ -16,7 +16,7 @@ namespace BombermanServer
             _statsRepo = statsRepo;
         }
 
-        // ----------------- Bağlantılar -----------------
+        // bağlantı- template, when connected or disconnected calls for the methods that i overrode
         public override Task OnConnectedAsync()
         {
             Console.WriteLine($"[JOIN] {Context.ConnectionId}");
@@ -29,14 +29,14 @@ namespace BombermanServer
             return base.OnDisconnectedAsync(exception);
         }
 
-        // ----------------- Oyuna Katıl -----------------
+        // oyuna katıl
         public Task JoinGame(string playerName)
         {
             Console.WriteLine($"[JOIN GAME] playerName={playerName}, connId={Context.ConnectionId}");
             return Task.CompletedTask;
         }
 
-        // ----------------- Hareket / Bomba -----------------
+        // bomba ve hareket
         public async Task SendMove(MoveState state)
         {
             if (state == null)
@@ -88,8 +88,8 @@ namespace BombermanServer
             await Clients.All.SendAsync("PlayerDied", playerId);
         }
 
-        // ----------------- GAME RESULT + LEADERBOARD -----------------
-        // Unity: await connection.InvokeAsync("SubmitGameResult", playerName, didWin);
+        //GAME RESULT + LEADERBOARD 
+        
         public async Task SubmitGameResult(string playerName, bool didWin)
         {
             Console.WriteLine($"[GAME RESULT] user={playerName} win={didWin}");
@@ -101,12 +101,12 @@ namespace BombermanServer
             catch (Exception ex)
             {
                 Console.WriteLine("[HUB] SubmitGameResult ERROR: " + ex);
-                // HubException client’a gitsin diye tekrar fırlatıyoruz
+                
                 throw;
             }
         }
 
-        // Unity: await connection.InvokeAsync("GetLeaderboard", 5);
+       
         public async Task<List<LeaderboardEntry>> GetLeaderboard(int top = 10)
         {
             try

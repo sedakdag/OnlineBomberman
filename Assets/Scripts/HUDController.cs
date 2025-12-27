@@ -9,7 +9,7 @@ public class HUDController : MonoBehaviour
     [SerializeField] private PlayerHealth playerHealth;
 
     [Header("Hearts")]
-    [SerializeField] private Image[] hearts; // Heart_1..3
+    [SerializeField] private Image[] hearts; 
 
     [Header("Top Left Texts")]
     [SerializeField] private TMP_Text bombText;
@@ -19,9 +19,9 @@ public class HUDController : MonoBehaviour
     [Header("Result UI")]
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private GameObject winPanel;
-    [SerializeField] private GameObject topLeftPanel;   // Bombs/Power/Speed paneli
-    [SerializeField] private TMP_Text resultTitleText;  // büyük başlık (GAME OVER / YOU WIN)
-    [SerializeField] private TMP_Text leaderboardText;  // leaderboard yazısı
+    [SerializeField] private GameObject topLeftPanel;   
+    [SerializeField] private TMP_Text resultTitleText;  
+    [SerializeField] private TMP_Text leaderboardText;  
 
     private void Start()
     {
@@ -44,7 +44,7 @@ public class HUDController : MonoBehaviour
             playerStats.Changed -= RefreshStats;
     }
 
-    // === Canlar / Bomb / Power / Speed ===
+    
 
     public void RefreshStats()
     {
@@ -67,9 +67,7 @@ public class HUDController : MonoBehaviour
         }
     }
 
-    // === Sonuç ekranı gösterme (parametreli & paramsız) ===
-
-    // Eski çağrıları bozmasın diye parametresiz versiyonları bıraktık
+   
     public void ShowGameOver()
     {
         ShowGameOver(null);
@@ -80,8 +78,7 @@ public class HUDController : MonoBehaviour
         ShowWin(null);
     }
 
-    // Server’dan gelecek leaderboard string’i buraya verebiliriz
-    public void ShowGameOver(string leaderboardTextContent)
+        public void ShowGameOver(string leaderboardTextContent)
     {
         if (topLeftPanel) topLeftPanel.SetActive(false);
         if (gameOverPanel) gameOverPanel.SetActive(true);

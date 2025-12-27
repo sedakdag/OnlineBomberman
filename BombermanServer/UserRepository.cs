@@ -1,5 +1,5 @@
 using System;
-using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient; //ef core yerine direkt sql
 
 namespace BombermanServer
 {

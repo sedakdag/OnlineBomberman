@@ -8,16 +8,17 @@ namespace BombermanServer
             : base(options)
         {
         }
-
+        // entity framework ile tablolar
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<PlayerStats> PlayerStats { get; set; } = null!;
         public DbSet<UserPreference> UserPreferences { get; set; } = null!;
-
+        
+        //db template method, dbcontext ve onmodelcreating override
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // ---- Users ----
+            
             modelBuilder.Entity<User>(entity =>
             {
                 entity.ToTable("Users");
@@ -30,13 +31,13 @@ namespace BombermanServer
                       .IsUnique();
             });
 
-            // ---- PlayerStats ----
+            
             modelBuilder.Entity<PlayerStats>(entity =>
             {
                 entity.ToTable("PlayerStats");
                 entity.HasKey(p => p.Id);
 
-                // ⚠️ DefaultValue YOK — değerleri entity içinde veriyoruz
+                
                 entity.Property(p => p.Wins).IsRequired();
                 entity.Property(p => p.Losses).IsRequired();
 
@@ -47,7 +48,7 @@ namespace BombermanServer
                       .HasForeignKey<PlayerStats>(p => p.UserId);
             });
 
-            // ---- UserPreference ----
+            
             modelBuilder.Entity<UserPreference>(entity =>
             {
                 entity.ToTable("UserPreferences");

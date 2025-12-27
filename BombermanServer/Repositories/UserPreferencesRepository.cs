@@ -16,9 +16,9 @@ namespace BombermanServer
 
         public async Task<ThemeType> GetPreferredThemeAsync(string username)
         {
-            // User + Preferences join
+            
             var user = await _db.Users
-                .Include(u => u.Preferences)   // birazdan User'a nav ekleyeceğiz
+                .Include(u => u.Preferences)   
                 .FirstOrDefaultAsync(u => u.Username == username);
 
             if (user == null || user.Preferences == null)
@@ -29,6 +29,7 @@ namespace BombermanServer
 
         public async Task SetPreferredThemeAsync(string username, ThemeType theme)
         {
+            //framework ef core db de geziyor - iterator denembilrir
             var user = await _db.Users
                 .Include(u => u.Preferences)
                 .FirstOrDefaultAsync(u => u.Username == username);

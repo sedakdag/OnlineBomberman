@@ -4,9 +4,9 @@ namespace BombermanServer
 {
     public class PlayerScore
     {
-        public int Id { get; set; }                 // PK (auto increment)
-        public string PlayerId { get; set; } = "";  // SignalR ConnectionId
-        public string PlayerName { get; set; } = ""; // İstersen UI'dan isim alırsın
+        public int Id { get; set; }                
+        public string PlayerId { get; set; } = "";  
+        public string PlayerName { get; set; } = ""; 
 
         public int Wins { get; set; }
         public int Losses { get; set; }

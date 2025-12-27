@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Contracts; // ThemeType
+using Contracts; 
 
 namespace BombermanServer
 {
